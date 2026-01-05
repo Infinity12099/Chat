@@ -8,10 +8,11 @@
         :root { --bg-color: #f0f0f0; --chat-bg: white; --text-color: black; --received-msg: #e5e5ea; --input-bg: rgba(255,255,255,0.95); --border-color: #ddd; --header-bg: white; }
         body.dark-mode { --bg-color: #121212; --chat-bg: #1e1e1e; --text-color: #ffffff; --received-msg: #3a3a3c; --input-bg: rgba(30,30,30,0.95); --border-color: #333; --header-bg: #1e1e1e; }
         
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; width: 100%; position: fixed; background: var(--bg-color); color: var(--text-color); font-family: -apple-system, system-ui, sans-serif; }
-        body { display: flex; flex-direction: column; }
+        /* FIX FÜR IPAD: Kein fixed auf dem Body, damit Inputs funktionieren */
+        html, body { height: 100%; margin: 0; padding: 0; background: var(--bg-color); color: var(--text-color); font-family: -apple-system, system-ui, sans-serif; overflow: hidden; }
+        body { display: flex; flex-direction: column; width: 100vw; }
         
-        header { padding: 10px 15px; background: var(--header-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; flex-shrink: 0; padding-top: env(safe-area-inset-top); }
+        header { padding: 10px 15px; background: var(--header-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0; padding-top: env(safe-area-inset-top); }
         
         /* SIDEBAR & OVERLAYS */
         #sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: var(--chat-bg); box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 1500; transition: 0.3s; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; overflow-y: auto; }
@@ -30,7 +31,7 @@
         .sent { align-self: flex-end; }
         .received { align-self: flex-start; }
         
-        .msg { padding: 8px 12px; border-radius: 18px; word-wrap: break-word; font-size: 15px; cursor: pointer; position: relative; }
+        .msg { padding: 8px 12px; border-radius: 18px; word-wrap: break-word; font-size: 15px; cursor: pointer; position: relative; -webkit-tap-highlight-color: transparent; }
         .sent .msg { background: #007aff; color: white; border-bottom-right-radius: 2px; }
         .received .msg { background: var(--received-msg); color: var(--text-color); border-bottom-left-radius: 2px; }
         
@@ -51,10 +52,12 @@
 
         /* INPUT AREA */
         .input-area { padding: 10px; background: var(--input-bg); border-top: 1px solid var(--border-color); display: flex; align-items: center; flex-shrink: 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-        #message-input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--chat-bg); color: var(--text-color); font-size: 16px; margin: 0 8px; }
+        #message-input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--chat-bg); color: var(--text-color); font-size: 16px; margin: 0 8px; -webkit-appearance: none; }
         
+        /* AUTH OVERLAY FIX */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-color); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-        .auth-card { background: var(--chat-bg); padding: 30px; border-radius: 25px; width: 85%; max-width: 300px; display: flex; flex-direction: column; gap: 10px; }
+        .auth-card { background: var(--chat-bg); padding: 30px; border-radius: 25px; width: 85%; max-width: 300px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .auth-card input { padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); font-size: 16px; }
     </style>
 </head>
 <body>
@@ -63,7 +66,6 @@
 <div id="sidebar">
     <h2 style="margin-top:0;">Menü</h2>
     <button id="archive-btn" style="width:100%; padding:12px; background:#007aff; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">📦 Archiv öffnen</button>
-    
     <div id="admin-section" class="admin-box">
         <strong style="color:#ff9500; font-size:12px;">ADMIN CONTROL</strong><br>
         <div id="delete-status-label" class="status-badge"></div>
@@ -77,12 +79,10 @@
             <div id="allowed-list-display" style="font-size:11px; margin-top:8px; max-height:100px; overflow-y:auto;"></div>
         </div>
     </div>
-
     <div style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px;">
         <strong>Status</strong>
         <div id="status-container"></div>
     </div>
-    
     <button id="logout-btn" style="margin-top:auto; background:#ff3b30; color:white; border:none; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">🚪 Abmelden</button>
 </div>
 
@@ -112,10 +112,10 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2>Login</h2>
+        <h2 style="margin:0;">Anmelden</h2>
         <input type="text" id="auth-user" placeholder="Name">
         <input type="password" id="auth-pass" placeholder="Passwort">
-        <button id="login-submit" style="padding:12px; background:#007aff; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Anmelden</button>
+        <button id="login-submit" style="padding:12px; background:#007aff; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Login</button>
         <button id="register-submit" style="background:none; border:none; color:#007aff; font-size:12px; cursor:pointer;">Konto erstellen</button>
     </div>
 </div>
@@ -129,7 +129,7 @@
 </div>
 
 <div id="edit-preview">
-    <span style="color:#ff9500;">✏️ Nachricht bearbeiten...</span>
+    <span style="color:#ff9500;">✏️ Bearbeiten...</span>
     <button onclick="cancelEdit()" style="background:none; border:none; color:red; font-weight:bold; cursor:pointer;">X</button>
 </div>
 
@@ -142,7 +142,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp as rtdbTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.app/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCcXbYcAGOZN1hecccLLNMTIox-L_s-hXY",
@@ -158,29 +158,18 @@
     const db = getFirestore(app);
     const rtdb = getDatabase(app);
     let myName = localStorage.getItem("chat-user-logged");
-    let unreadCount = 0;
-    let isTabActive = true;
-    let deleteAllowed = true, selId = null, selText = "", replyId = null, editId = null;
-    let lastSeenByOthers = {};
-    let firstLoad = true;
+    let unreadCount = 0, isTabActive = true, deleteAllowed = true, selId = null, selText = "", replyId = null, editId = null;
+    let lastSeenByOthers = {}, firstLoad = true;
 
-    // --- BENACHRICHTIGUNGS-LOGIK ---
+    // Benachrichtigungen
     if (Notification.permission !== "granted") Notification.requestPermission();
-
-    window.onfocus = () => { 
-        isTabActive = true; 
-        unreadCount = 0; 
-        document.title = "CHAT"; 
-    };
+    window.onfocus = () => { isTabActive = true; unreadCount = 0; document.title = "CHAT"; };
     window.onblur = () => { isTabActive = false; };
-
     const showNotify = (m) => {
         if (!isTabActive) {
             unreadCount++;
             document.title = `(${unreadCount}) CHAT`;
-            if (Notification.permission === "granted") {
-                new Notification(m.user, { body: m.text || "📷 Bild empfangen", silent: true });
-            }
+            if (Notification.permission === "granted") new Notification(m.user, { body: m.text || "Bild", silent: true });
         }
     };
 
@@ -190,6 +179,7 @@
     };
 
     if (myName) {
+        document.getElementById("auth-overlay").style.display = "none";
         set(ref(rtdb, 'status/' + myName), { online: true, lastSeen: rtdbTimestamp() });
         onDisconnect(ref(rtdb, 'status/' + myName)).set({ online: false, lastSeen: rtdbTimestamp() });
 
@@ -220,7 +210,7 @@
             });
             if(myName === "infinity") {
                 document.getElementById("admin-section").style.display = "block";
-                document.getElementById("allowed-list-display").innerHTML = allowed.map(u => `<div>• ${u} <span style="color:red; cursor:pointer;" onclick="window.remU('${u}')">×</span></div>`).join("");
+                document.getElementById("allowed-list-display").innerHTML = allowed.map(u => `<div>• ${u} <span style="color:red;" onclick="window.remU('${u}')">×</span></div>`).join("");
             }
         });
 
@@ -232,161 +222,69 @@
                 l.style.background = deleteAllowed ? "#4cd964" : "#ff3b30";
             }
         });
-    }
-
-    // ARCHIV
-    document.getElementById("archive-btn").onclick = async () => {
-        document.getElementById("archive-overlay").style.display = "flex";
-        const cont = document.getElementById("archive-content");
-        cont.innerHTML = "<div style='text-align:center;'>Lade Archiv...</div>";
-        const snap = await getDocs(query(collection(db, "messages"), orderBy("createdAt", "asc")));
-        cont.innerHTML = "";
-        snap.forEach(d => {
-            const m = d.data();
-            const wrap = document.createElement("div");
-            wrap.className = `msg-wrapper ${m.user === myName ? 'sent' : 'received'}`;
-            const time = m.createdAt ? m.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
-            wrap.innerHTML = `<small style="font-size:9px; opacity:0.5; margin-left:5px;">${m.user}</small><div class="msg">${m.text || ''}<div style="font-size:8px; opacity:0.5; text-align:right;">${time}</div></div>`;
-            cont.appendChild(wrap);
-        });
-        cont.scrollTop = cont.scrollHeight;
-    };
-    document.getElementById("close-archive").onclick = () => document.getElementById("archive-overlay").style.display = "none";
-
-    // MENU & EDIT
-    window.showMenu = (e, id, text, user) => {
-        e.preventDefault(); selId = id; selText = text;
-        const menu = document.getElementById("context-menu");
-        document.getElementById("menu-delete").style.display = (user === myName && (deleteAllowed || myName === "infinity")) ? "block" : "none";
-        document.getElementById("menu-edit").style.display = (user === myName) ? "block" : "none";
-        menu.style.display = "block";
-        menu.style.left = Math.min(e.pageX, window.innerWidth - 180) + "px";
-        menu.style.top = Math.min(e.pageY, window.innerHeight - 150) + "px";
-    };
-
-    window.prepareEdit = () => {
-        editId = selId;
-        document.getElementById("message-input").value = selText;
-        document.getElementById("edit-preview").style.display = "flex";
-        document.getElementById("context-menu").style.display = "none";
-        document.getElementById("message-input").focus();
-    };
-
-    window.cancelEdit = () => { editId = null; document.getElementById("edit-preview").style.display = "none"; document.getElementById("message-input").value = ""; };
-    window.react = async (emoji) => {
-        const r = doc(db, "messages", selId);
-        const s = await getDoc(r);
-        let re = s.data().reactions || {}; re[myName] = emoji;
-        await updateDoc(r, { reactions: re });
-        document.getElementById("context-menu").style.display = "none";
-    };
-
-    window.prepareReply = () => {
-        replyId = selId; cancelEdit();
-        document.getElementById("reply-text-display").textContent = "Antwort an: " + selText.substring(0, 15) + "...";
-        document.getElementById("reply-preview").style.display = "flex";
-        document.getElementById("context-menu").style.display = "none";
-        document.getElementById("message-input").focus();
-    };
-
-    window.cancelReply = () => { replyId = null; document.getElementById("reply-preview").style.display = "none"; };
-    window.deleteMsg = async () => { if(confirm("Löschen?")) await deleteDoc(doc(db, "messages", selId)); document.getElementById("context-menu").style.display = "none"; };
-
-    // AUTH
-    document.getElementById("login-submit").onclick = async () => {
-        const n = document.getElementById("auth-user").value.trim().toLowerCase();
-        const p = btoa(document.getElementById("auth-pass").value.trim());
-        const s = await getDoc(doc(db, "users", n));
-        if(s.exists() && s.data().password === p) { localStorage.setItem("chat-user-logged", n); location.reload(); } else alert("Fehler!");
-    };
-    document.getElementById("register-submit").onclick = async () => {
-        const n = document.getElementById("auth-user").value.trim().toLowerCase();
-        const p = document.getElementById("auth-pass").value.trim();
-        const allowed = await getAllowed();
-        if(!allowed.includes(n)) return alert("Admin fragen!");
-        const s = await getDoc(doc(db, "users", n));
-        if(s.exists()) return alert("Existiert bereits!");
-        await setDoc(doc(db, "users", n), { password: btoa(p) }); alert("Erstellt!");
-    };
-
-    document.getElementById("logout-btn").onclick = () => { localStorage.clear(); location.reload(); };
-    document.getElementById("open-menu").onclick = () => { document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebar-overlay").style.display = "block"; };
-    document.getElementById("sidebar-overlay").onclick = () => { document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebar-overlay").style.display = "none"; };
-    document.getElementById("dark-btn").onclick = () => { document.body.classList.toggle("dark-mode"); localStorage.setItem("theme", document.body.classList.contains("dark-mode")?"dark":"light"); };
-    if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark-mode");
-
-    // MAIN CHAT
-    if (myName) {
-        document.getElementById("auth-overlay").style.display = "none";
-        document.getElementById("display-name").textContent = myName.toUpperCase();
 
         onSnapshot(query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(40)), (snap) => {
             const win = document.getElementById("chat-window");
             win.innerHTML = ""; let ms = []; snap.forEach(d => ms.push({id:d.id, ...d.data()}));
-            
-            // Notification Trigger
             if (!firstLoad && snap.docChanges().some(c => c.type === "added")) {
-                const newMsg = ms[0];
-                if (newMsg && newMsg.user !== myName) showNotify(newMsg);
+                const newMsg = ms[0]; if (newMsg && newMsg.user !== myName) showNotify(newMsg);
             }
             firstLoad = false;
-
             ms.reverse().forEach(m => {
                 const wrap = document.createElement("div");
                 wrap.className = `msg-wrapper ${m.user===myName?'sent':'received'}`;
                 const date = m.createdAt ? m.createdAt.toDate() : null;
                 const timeStr = date ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
-                
                 let tickClass = "";
                 if(m.user === myName && date) {
                     const others = Object.keys(lastSeenByOthers).filter(u => u !== myName);
                     const readByAny = others.some(u => lastSeenByOthers[u].lastSeen > date.getTime());
                     if(readByAny) tickClass = "tick-blue";
                 }
-
                 const ticks = m.user === myName ? `<span class="tick ${tickClass}">✓✓</span>` : "";
                 const editHint = m.edited ? `<span style="font-style:italic; font-size:7px; opacity:0.5;"> (bearbeitet)</span>` : "";
-                const rHtml = m.replyToText ? `<div class="reply-ref">Ref: ${m.replyToText}</div>` : "";
-                const reHtml = m.reactions ? `<div class="reactions">${Object.values(m.reactions).map(r => `<span class="reaction-badge">${r}</span>`).join("")}</div>` : "";
-                
-                wrap.innerHTML = `<small style="font-size:9px; opacity:0.5; margin-bottom:2px; margin-left:5px;">${m.user}</small>${rHtml}
+                wrap.innerHTML = `<small style="font-size:9px; opacity:0.5; margin-left:5px;">${m.user}</small>
                     <div class="msg" oncontextmenu="showMenu(event,'${m.id}','${m.text.replace(/'/g, "\\'")}','${m.user}')" ontouchstart="window.tT=setTimeout(()=>showMenu(event,'${m.id}','${m.text.replace(/'/g, "\\'")}','${m.user}'),500)" ontouchend="clearTimeout(window.tT)">
                     ${m.imageUrl ? `<img src="${m.imageUrl}" style="max-width:100%; border-radius:10px;"><br>` : ''}${m.text || ''}
-                    <div style="font-size:8px; opacity:0.6; text-align:right; margin-top:2px;">${editHint} ${timeStr} ${ticks}</div>
-                    </div>${reHtml}`;
+                    <div style="font-size:8px; opacity:0.6; text-align:right;">${editHint} ${timeStr} ${ticks}</div>
+                    </div>`;
                 win.appendChild(wrap);
             });
             win.scrollTop = win.scrollHeight;
         });
     }
 
+    // --- FUNKTIONEN ---
     const send = async () => {
         const val = document.getElementById("message-input").value.trim();
         if(!val) return;
-        if(editId) {
-            await updateDoc(doc(db, "messages", editId), { text: val, edited: true });
-            cancelEdit();
-        } else {
-            const msg = { text: val, user: myName, createdAt: serverTimestamp(), reactions: {} };
-            if(replyId) { msg.replyTo = replyId; msg.replyToText = selText; }
-            await addDoc(collection(db, "messages"), msg);
-            document.getElementById("message-input").value = "";
-            cancelReply();
-        }
+        if(editId) { await updateDoc(doc(db, "messages", editId), { text: val, edited: true }); cancelEdit(); }
+        else { await addDoc(collection(db, "messages"), { text: val, user: myName, createdAt: serverTimestamp(), reactions: {} }); document.getElementById("message-input").value = ""; }
     };
     
+    document.getElementById("login-submit").onclick = async () => {
+        const n = document.getElementById("auth-user").value.trim().toLowerCase();
+        const p = btoa(document.getElementById("auth-pass").value.trim());
+        const s = await getDoc(doc(db, "users", n));
+        if(s.exists() && s.data().password === p) { localStorage.setItem("chat-user-logged", n); location.reload(); } else alert("Login falsch!");
+    };
+    document.getElementById("register-submit").onclick = async () => {
+        const n = document.getElementById("auth-user").value.trim().toLowerCase();
+        const p = document.getElementById("auth-pass").value.trim();
+        const allowed = await getAllowed();
+        if(!allowed.includes(n)) return alert("Nicht erlaubt!");
+        await setDoc(doc(db, "users", n), { password: btoa(p) }); alert("Konto bereit!");
+    };
+
     document.getElementById("send-btn").onclick = send;
     document.getElementById("message-input").onkeydown = (e) => { if(e.key==="Enter") send(); };
-    document.getElementById("img-btn").onclick = () => { const u = prompt("Bild-URL:"); if(u) addDoc(collection(db, "messages"), {imageUrl:u, user:myName, createdAt:serverTimestamp()}); };
-    document.body.onclick = (e) => { if(!e.target.closest('#context-menu')) document.getElementById("context-menu").style.display="none"; };
-    
-    window.remU = async (n) => { const a = await getAllowed(); await setDoc(doc(db, "settings", "allowedUsers"), { names: a.filter(u => u !== n) }); };
-    document.getElementById("add-user-btn").onclick = async () => {
-        const n = document.getElementById("new-user-name").value.trim().toLowerCase();
-        const a = await getAllowed(); if(n && !a.includes(n)) { a.push(n); await setDoc(doc(db, "settings", "allowedUsers"), { names: a }); }
-        document.getElementById("new-user-name").value = "";
-    };
-    document.getElementById("toggle-delete-btn").onclick = () => updateDoc(doc(db, "settings", "global"), { deleteAllowed: !deleteAllowed });
+    window.showMenu = (e, id, text, user) => { e.preventDefault(); selId = id; selText = text; const menu = document.getElementById("context-menu"); document.getElementById("menu-delete").style.display = (user === myName && deleteAllowed) ? "block" : "none"; document.getElementById("menu-edit").style.display = (user === myName) ? "block" : "none"; menu.style.display = "block"; menu.style.left = e.pageX + "px"; menu.style.top = e.pageY + "px"; };
+    window.prepareEdit = () => { editId = selId; document.getElementById("message-input").value = selText; document.getElementById("edit-preview").style.display = "flex"; document.getElementById("context-menu").style.display = "none"; };
+    window.cancelEdit = () => { editId = null; document.getElementById("edit-preview").style.display = "none"; document.getElementById("message-input").value = ""; };
+    window.deleteMsg = async () => { if(confirm("Löschen?")) await deleteDoc(doc(db, "messages", selId)); document.getElementById("context-menu").style.display = "none"; };
+    document.getElementById("open-menu").onclick = () => { document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebar-overlay").style.display = "block"; };
+    document.getElementById("sidebar-overlay").onclick = () => { document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebar-overlay").style.display = "none"; };
+    document.getElementById("logout-btn").onclick = () => { localStorage.clear(); location.reload(); };
 </script>
 </body>
 </html>
